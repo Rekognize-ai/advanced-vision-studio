@@ -1,10 +1,13 @@
 import { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const Navigation = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -14,20 +17,34 @@ const Navigation = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const scrollToSection = (id: string) => {
-    const element = document.getElementById(id);
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
-      setIsMobileMenuOpen(false);
+  const handleNavClick = (path: string, id: string) => {
+    setIsMobileMenuOpen(false);
+    
+    if (path === "/demo") {
+      navigate("/demo");
+    } else if (location.pathname === "/") {
+      const element = document.getElementById(id);
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth" });
+      }
+    } else {
+      navigate("/");
+      setTimeout(() => {
+        const element = document.getElementById(id);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth" });
+        }
+      }, 100);
     }
   };
 
   const navItems = [
-    { label: "Home", id: "hero" },
-    { label: "Mission", id: "mission" },
-    { label: "Technology", id: "technology" },
-    { label: "Impact", id: "impact" },
-    { label: "Contact", id: "contact" },
+    { label: "Home", id: "hero", path: "/" },
+    { label: "Mission", id: "mission", path: "/" },
+    { label: "Technology", id: "technology", path: "/" },
+    { label: "Impact", id: "impact", path: "/" },
+    { label: "Demo", id: "demo", path: "/demo" },
+    { label: "Contact", id: "contact", path: "/" },
   ];
 
   return (
@@ -49,14 +66,14 @@ const Navigation = () => {
             {navItems.map((item) => (
               <button
                 key={item.id}
-                onClick={() => scrollToSection(item.id)}
+                onClick={() => handleNavClick(item.path, item.id)}
                 className="text-foreground hover:text-secondary transition-smooth font-medium"
               >
                 {item.label}
               </button>
             ))}
             <Button
-              onClick={() => scrollToSection("contact")}
+              onClick={() => handleNavClick("/", "contact")}
               className="gradient-primary text-white font-semibold shadow-glow hover:scale-105 transition-smooth"
             >
               Get in Touch
@@ -79,14 +96,14 @@ const Navigation = () => {
               {navItems.map((item) => (
                 <button
                   key={item.id}
-                  onClick={() => scrollToSection(item.id)}
+                  onClick={() => handleNavClick(item.path, item.id)}
                   className="text-foreground hover:text-secondary transition-smooth font-medium text-left"
                 >
                   {item.label}
                 </button>
               ))}
               <Button
-                onClick={() => scrollToSection("contact")}
+                onClick={() => handleNavClick("/", "contact")}
                 className="gradient-primary text-white font-semibold w-full"
               >
                 Get in Touch
