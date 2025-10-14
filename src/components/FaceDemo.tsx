@@ -1,10 +1,20 @@
 import { useState, useEffect } from "react";
 import { FaceRecognitionOverlay } from "./FaceRecognitionOverlay";
-import { Button } from "./ui/button";
-import { Play, Pause } from "lucide-react";
+import face1 from "@/assets/face1.jpg";
+import face2 from "@/assets/face2.jpg";
+import face3 from "@/assets/face3.jpg";
 
 const FaceDemo = () => {
-  const [isAnalyzing, setIsAnalyzing] = useState(true);
+  const faces = [face1, face2, face3];
+  const [currentFaceIndex, setCurrentFaceIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentFaceIndex((prev) => (prev + 1) % faces.length);
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, [faces.length]);
 
   return (
     <section className="py-20 bg-card/50">
@@ -23,57 +33,25 @@ const FaceDemo = () => {
           {/* Demo Area */}
           <div className="relative max-w-2xl mx-auto">
             <div className="relative aspect-[4/3] rounded-2xl overflow-hidden shadow-elegant border-2 border-border bg-muted/30">
-              {/* Sample Face Image */}
+              {/* Face Image */}
               <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-muted/50 to-card">
-                <div className="relative w-full h-full flex items-center justify-center">
-                  {/* Placeholder for face - you can replace with actual image */}
-                  <div className="relative w-64 h-80 bg-gradient-to-b from-secondary/20 to-accent/20 rounded-full blur-sm" />
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <svg viewBox="0 0 200 240" className="w-64 h-80 opacity-40">
-                      {/* Simple face illustration */}
-                      <ellipse cx="100" cy="120" rx="80" ry="100" fill="hsl(var(--secondary))" opacity="0.3"/>
-                      <circle cx="75" cy="100" r="8" fill="hsl(var(--foreground))" opacity="0.5"/>
-                      <circle cx="125" cy="100" r="8" fill="hsl(var(--foreground))" opacity="0.5"/>
-                      <path d="M 70 140 Q 100 160 130 140" stroke="hsl(var(--foreground))" strokeWidth="3" fill="none" opacity="0.5"/>
-                    </svg>
-                  </div>
-                </div>
+                <img 
+                  src={faces[currentFaceIndex]} 
+                  alt="Face being analyzed" 
+                  className="w-full h-full object-cover transition-opacity duration-500"
+                />
               </div>
 
               {/* Recognition Overlay */}
-              <FaceRecognitionOverlay isActive={isAnalyzing} />
+              <FaceRecognitionOverlay isActive={true} />
 
               {/* Status Badge */}
               <div className="absolute top-4 right-4 bg-card/90 backdrop-blur-sm rounded-lg px-4 py-2 border border-border shadow-lg">
                 <div className="flex items-center space-x-2">
-                  <div className={`w-2 h-2 rounded-full ${isAnalyzing ? 'bg-secondary animate-pulse' : 'bg-muted'}`} />
-                  <span className="text-sm font-semibold">
-                    {isAnalyzing ? "Analyzing..." : "Paused"}
-                  </span>
+                  <div className="w-2 h-2 rounded-full bg-secondary animate-pulse" />
+                  <span className="text-sm font-semibold">Analyzing...</span>
                 </div>
               </div>
-            </div>
-
-            {/* Control Button */}
-            <div className="flex justify-center mt-6">
-              <Button
-                onClick={() => setIsAnalyzing(!isAnalyzing)}
-                variant="outline"
-                size="lg"
-                className="font-semibold"
-              >
-                {isAnalyzing ? (
-                  <>
-                    <Pause className="mr-2 w-5 h-5" />
-                    Pause Analysis
-                  </>
-                ) : (
-                  <>
-                    <Play className="mr-2 w-5 h-5" />
-                    Start Analysis
-                  </>
-                )}
-              </Button>
             </div>
           </div>
 
