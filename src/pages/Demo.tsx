@@ -4,6 +4,7 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Upload, Camera, RotateCcw, Lightbulb, CheckCircle2, XCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { FaceRecognitionOverlay } from "@/components/FaceRecognitionOverlay";
 
 const Demo = () => {
   const [referenceImage, setReferenceImage] = useState<string | null>(null);
@@ -187,9 +188,12 @@ const Demo = () => {
               Upload or capture the reference face image
             </p>
             
-            <div className="aspect-square bg-muted/30 rounded-xl border-2 border-dashed border-border mb-4 overflow-hidden flex items-center justify-center">
+            <div className="aspect-square bg-muted/30 rounded-xl border-2 border-dashed border-border mb-4 overflow-hidden flex items-center justify-center relative">
               {referenceImage ? (
-                <img src={referenceImage} alt="Reference" className="w-full h-full object-cover" />
+                <>
+                  <img src={referenceImage} alt="Reference" className="w-full h-full object-cover" />
+                  <FaceRecognitionOverlay isActive={isComparing} />
+                </>
               ) : (
                 <div className="text-center p-8">
                   <Upload className="w-12 h-12 text-muted-foreground mx-auto mb-2" />
@@ -235,9 +239,12 @@ const Demo = () => {
               Upload or capture the image to compare
             </p>
             
-            <div className="aspect-square bg-muted/30 rounded-xl border-2 border-dashed border-border mb-4 overflow-hidden flex items-center justify-center">
+            <div className="aspect-square bg-muted/30 rounded-xl border-2 border-dashed border-border mb-4 overflow-hidden flex items-center justify-center relative">
               {comparisonImage ? (
-                <img src={comparisonImage} alt="Comparison" className="w-full h-full object-cover" />
+                <>
+                  <img src={comparisonImage} alt="Comparison" className="w-full h-full object-cover" />
+                  <FaceRecognitionOverlay isActive={isComparing} />
+                </>
               ) : (
                 <div className="text-center p-8">
                   <Upload className="w-12 h-12 text-muted-foreground mx-auto mb-2" />
