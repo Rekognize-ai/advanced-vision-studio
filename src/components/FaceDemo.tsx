@@ -55,36 +55,31 @@ const FaceDemo = () => {
             </div>
           </div>
 
-          {/* Features Grid */}
-          <div className="grid md:grid-cols-4 gap-6 mt-16">
-            {[
-              {
-                label: "Detection Points",
-                value: "68+",
-                description: "Facial landmarks tracked"
-              },
-              {
-                label: "Processing Speed",
-                value: "<100ms",
-                description: "Real-time analysis"
-              },
-              {
-                label: "Accuracy Rate",
-                value: "99.9%",
-                description: "Consistent across all demographics"
-              },
-              {
-                label: "Accuracy Rate",
-                value: "99.9%",
-                description: "Optimized for persons of colour and minority groups"
-              }
-            ].map((stat, index) => (
-              <div key={index} className="text-center p-6 bg-card rounded-xl border border-border">
-                <div className="text-3xl font-bold text-secondary mb-2">{stat.value}</div>
-                <div className="font-semibold mb-1">{stat.label}</div>
-                <div className="text-sm text-muted-foreground">{stat.description}</div>
-              </div>
-            ))}
+          {/* Statistics Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-16">
+            <div className="text-center p-6 bg-card rounded-xl border border-border">
+              <div className="text-3xl font-bold text-secondary mb-2">68+</div>
+              <div className="font-semibold mb-1">Detection Points</div>
+              <div className="text-sm text-muted-foreground">Facial landmarks tracked</div>
+            </div>
+            
+            <div className="text-center p-6 bg-card rounded-xl border border-border">
+              <div className="text-3xl font-bold text-secondary mb-2">&lt;100ms</div>
+              <div className="font-semibold mb-1">Processing Speed</div>
+              <div className="text-sm text-muted-foreground">Real-time analysis</div>
+            </div>
+            
+            <div className="text-center p-6 bg-card rounded-xl border border-border">
+              <div className="text-3xl font-bold text-secondary mb-2">99.9%</div>
+              <div className="font-semibold mb-1">Accuracy Rate</div>
+              <div className="text-sm text-muted-foreground">Consistent across all demographics</div>
+            </div>
+            
+            <div className="text-center p-6 bg-card rounded-xl border border-border">
+              <div className="text-3xl font-bold text-secondary mb-2">99.9%</div>
+              <div className="font-semibold mb-1">Accuracy Rate</div>
+              <div className="text-sm text-muted-foreground">Optimized for persons of colour and minority groups</div>
+            </div>
           </div>
         </div>
       </div>
