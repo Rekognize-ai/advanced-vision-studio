@@ -71,7 +71,7 @@ const FaceDemo = () => {
               {
                 label: "Accuracy",
                 value: "99.9%",
-                description: "Across all skin tones"
+                description: "Consistent across all demographics, optimized for persons of colour and minority groups"
               }
             ].map((stat, index) => (
               <div key={index} className="text-center p-6 bg-card rounded-xl border border-border">
