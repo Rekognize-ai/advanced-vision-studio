@@ -56,7 +56,7 @@ const FaceDemo = () => {
           </div>
 
           {/* Features Grid */}
-          <div className="grid md:grid-cols-3 gap-6 mt-16">
+          <div className="grid md:grid-cols-4 gap-6 mt-16">
             {[
               {
                 label: "Detection Points",
@@ -69,9 +69,14 @@ const FaceDemo = () => {
                 description: "Real-time analysis"
               },
               {
-                label: "Accuracy",
+                label: "Accuracy Rate",
                 value: "99.9%",
-                description: "Consistent across all demographics, optimized for persons of colour and minority groups"
+                description: "Consistent across all demographics"
+              },
+              {
+                label: "Accuracy Rate",
+                value: "99.9%",
+                description: "Optimized for persons of colour and minority groups"
               }
             ].map((stat, index) => (
               <div key={index} className="text-center p-6 bg-card rounded-xl border border-border">
