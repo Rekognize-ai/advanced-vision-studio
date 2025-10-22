@@ -55,7 +55,7 @@ const FaceDemo = () => {
             </div>
           </div>
 
-          {/* Statistics Grid */}
+          {/* Statistics Grid - Updated */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-16">
             <div className="text-center p-6 bg-card rounded-xl border border-border">
               <div className="text-3xl font-bold text-secondary mb-2">68+</div>
