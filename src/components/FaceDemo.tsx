@@ -72,7 +72,7 @@ const FaceDemo = () => {
             <div className="text-center p-6 bg-card rounded-xl border border-border">
               <div className="text-3xl font-bold text-secondary mb-2">99.9%</div>
               <div className="font-semibold mb-1">Accuracy Rate</div>
-              <div className="text-sm text-muted-foreground">Consistent across all demographics</div>
+              <div className="text-sm text-muted-foreground">Optimized for persons of color and other minority groups</div>
             </div>
             
             <div className="text-center p-6 bg-card rounded-xl border border-border">
