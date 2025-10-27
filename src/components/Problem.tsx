@@ -2,7 +2,7 @@ import { AlertTriangle } from "lucide-react";
 
 const Problem = () => {
   return (
-    <section className="py-24 bg-background">
+    <section id="problem" className="py-24 bg-background" aria-labelledby="problem-heading">
       <div className="container mx-auto px-4">
         <div className="max-w-6xl mx-auto">
           <div className="grid md:grid-cols-2 gap-12 items-center">
@@ -12,8 +12,8 @@ const Problem = () => {
                 <AlertTriangle className="w-4 h-4" />
                 <span>THE PROBLEM WE'RE SOLVING</span>
               </div>
-              <h2 className="text-4xl md:text-5xl font-bold mb-6">
-                Addressing the Gaps in Traditional Systems
+              <h2 id="problem-heading" className="text-4xl md:text-5xl font-bold mb-6">
+                Facial Recognition Has a Bias Problem
               </h2>
               <p className="text-lg text-muted-foreground leading-relaxed mb-6">
                 Traditional facial recognition systems have historically

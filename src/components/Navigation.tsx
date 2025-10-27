@@ -56,11 +56,13 @@ const Navigation = () => {
           ? "bg-background/95 backdrop-blur-md shadow-elegant"
           : "bg-transparent"
       }`}
+      role="navigation"
+      aria-label="Main navigation"
     >
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-20">
           <div className="flex items-center space-x-2">
-            <img src={logo} alt="Rekognize" className="h-6 w-auto text-primary" />
+            <img src={logo} alt="RekognizeAI - Fair Facial Recognition Technology" className="h-6 w-auto" />
           </div>
 
           {/* Desktop Navigation */}
@@ -86,6 +88,8 @@ const Navigation = () => {
           <button
             className="md:hidden text-foreground"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            aria-label="Toggle mobile menu"
+            aria-expanded={isMobileMenuOpen}
           >
             {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>

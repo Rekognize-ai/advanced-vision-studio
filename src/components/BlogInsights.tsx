@@ -34,7 +34,7 @@ const BlogInsights = () => {
   ];
 
   return (
-    <section id="blog" className="py-24 bg-gradient-subtle">
+    <section id="blog" className="py-24 bg-card" aria-labelledby="blog-heading">
       <div className="container mx-auto px-4">
         <div className="max-w-6xl mx-auto">
           {/* Header */}
@@ -42,7 +42,7 @@ const BlogInsights = () => {
             <div className="inline-block gradient-primary text-white font-semibold px-4 py-2 rounded-full mb-4 text-sm">
               INSIGHTS & INNOVATION
             </div>
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">
+            <h2 id="blog-heading" className="text-4xl md:text-5xl font-bold mb-6">
               Latest from RekognizeAI
             </h2>
             <p className="text-lg text-muted-foreground">

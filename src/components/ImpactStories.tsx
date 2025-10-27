@@ -46,7 +46,7 @@ const ImpactStories = () => {
             <div className="inline-block gradient-primary text-white font-semibold px-4 py-2 rounded-full mb-4 text-sm">
               REAL-WORLD IMPACT
             </div>
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">
+            <h2 id="impact-heading" className="text-4xl md:text-5xl font-bold mb-6">
               Proven Fairness in the Real World
             </h2>
             <p className="text-lg text-muted-foreground">

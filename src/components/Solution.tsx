@@ -23,7 +23,7 @@ const Solution = () => {
   ];
 
   return (
-    <section id="technology" className="py-24 bg-gradient-subtle">
+    <section id="solution" className="py-24 bg-card" aria-labelledby="solution-heading">
       <div className="container mx-auto px-4">
         <div className="max-w-6xl mx-auto">
           {/* Header */}
@@ -31,7 +31,7 @@ const Solution = () => {
             <div className="inline-block gradient-primary text-white font-semibold px-4 py-2 rounded-full mb-4 text-sm">
               THE SOLUTION
             </div>
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">
+            <h2 id="solution-heading" className="text-4xl md:text-5xl font-bold mb-6">
               RekognizeAI: Designed for Fairness, Trained for Accuracy
             </h2>
             <p className="text-lg text-muted-foreground">

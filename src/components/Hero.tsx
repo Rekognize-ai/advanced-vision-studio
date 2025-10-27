@@ -13,6 +13,7 @@ const Hero = () => {
     <section
       id="hero"
       className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20"
+      aria-label="Hero section"
     >
       {/* Animated Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-background via-card to-background">

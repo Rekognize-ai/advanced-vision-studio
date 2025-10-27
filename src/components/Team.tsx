@@ -33,7 +33,7 @@ const Team = () => {
   ];
 
   return (
-    <section id="team" className="py-24 bg-background">
+    <section id="team" className="py-24 bg-background" aria-labelledby="team-heading">
       <div className="container mx-auto px-4">
         <div className="max-w-6xl mx-auto">
           {/* Header */}
@@ -41,7 +41,7 @@ const Team = () => {
             <div className="inline-block gradient-primary text-white font-semibold px-4 py-2 rounded-full mb-4 text-sm">
               ABOUT US
             </div>
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">
+            <h2 id="team-heading" className="text-4xl md:text-5xl font-bold mb-6">
               Who We Are
             </h2>
             <p className="text-lg text-muted-foreground mb-8">
