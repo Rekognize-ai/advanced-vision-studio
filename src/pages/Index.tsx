@@ -1,10 +1,13 @@
 import Navigation from "@/components/Navigation";
 import Hero from "@/components/Hero";
-import FaceDemo from "@/components/FaceDemo";
-import Mission from "@/components/Mission";
 import Problem from "@/components/Problem";
 import Solution from "@/components/Solution";
-import Impact from "@/components/Impact";
+import CoreTechnology from "@/components/CoreTechnology";
+import ImpactStories from "@/components/ImpactStories";
+import Team from "@/components/Team";
+import ResearchEthics from "@/components/ResearchEthics";
+import GetInvolved from "@/components/GetInvolved";
+import BlogInsights from "@/components/BlogInsights";
 import Contact from "@/components/Contact";
 import Footer from "@/components/Footer";
 
@@ -13,11 +16,14 @@ const Index = () => {
     <div className="min-h-screen">
       <Navigation />
       <Hero />
-      <FaceDemo />
-      <Mission />
       <Problem />
       <Solution />
-      <Impact />
+      <CoreTechnology />
+      <ImpactStories />
+      <Team />
+      <ResearchEthics />
+      <GetInvolved />
+      <BlogInsights />
       <Contact />
       <Footer />
     </div>

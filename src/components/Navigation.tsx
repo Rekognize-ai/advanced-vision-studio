@@ -41,11 +41,12 @@ const Navigation = () => {
 
   const navItems = [
     { label: "Home", id: "hero", path: "/" },
-    { label: "Mission", id: "mission", path: "/" },
+    { label: "Solution", id: "solution", path: "/" },
     { label: "Technology", id: "technology", path: "/" },
     { label: "Impact", id: "impact", path: "/" },
+    { label: "Team", id: "team", path: "/" },
+    { label: "Research", id: "research", path: "/" },
     { label: "Demo", id: "demo", path: "/demo" },
-    { label: "Contact", id: "contact", path: "/" },
   ];
 
   return (
@@ -74,10 +75,10 @@ const Navigation = () => {
               </button>
             ))}
             <Button
-              onClick={() => handleNavClick("/", "contact")}
+              onClick={() => handleNavClick("/", "get-involved")}
               className="gradient-primary text-white font-semibold shadow-glow hover:scale-105 transition-smooth"
             >
-              Get in Touch
+              Get Involved
             </Button>
           </div>
 
@@ -104,10 +105,10 @@ const Navigation = () => {
                 </button>
               ))}
               <Button
-                onClick={() => handleNavClick("/", "contact")}
+                onClick={() => handleNavClick("/", "get-involved")}
                 className="gradient-primary text-white font-semibold w-full"
               >
-                Get in Touch
+                Get Involved
               </Button>
             </div>
           </div>

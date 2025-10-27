@@ -4,21 +4,21 @@ const Solution = () => {
   const features = [
     {
       icon: Database,
-      title: "Proprietary Database",
+      title: "Proprietary Dataset",
       description:
-        "Access to one of the world's most comprehensive and diverse facial image databases, with strong emphasis on people of color.",
+        "100M+ diverse facial images ensuring representation across all demographics, with particular focus on underrepresented communities.",
     },
     {
       icon: Brain,
-      title: "Advanced AI Training",
+      title: "Bias-Mitigating Algorithm",
       description:
-        "Our models are trained to handle nuances of different facial features and skin tones, setting new benchmarks in fairness.",
+        "Advanced neural networks specifically designed to improve accuracy across all skin tones and facial features, eliminating historical biases.",
     },
     {
       icon: CheckCircle2,
-      title: "Extensive Research",
+      title: "Ethical AI Framework",
       description:
-        "Years of dedicated research ensuring our algorithm eliminates racial bias and provides reliable, accurate results.",
+        "Built on principles of transparency, inclusivity, and consent. Every decision prioritizes fairness and respect for individual privacy.",
     },
   ];
 
@@ -29,15 +29,13 @@ const Solution = () => {
           {/* Header */}
           <div className="text-center max-w-3xl mx-auto mb-16">
             <div className="inline-block gradient-primary text-white font-semibold px-4 py-2 rounded-full mb-4 text-sm">
-              OUR SOLUTION
+              THE SOLUTION
             </div>
             <h2 className="text-4xl md:text-5xl font-bold mb-6">
-              Bias-Free, Reliable Technology
+              RekognizeAI: Designed for Fairness, Trained for Accuracy
             </h2>
             <p className="text-lg text-muted-foreground">
-              Rekognize's facial recognition algorithm uses a unique and diverse
-              dataset to address and eliminate racial bias through cutting-edge
-              approaches.
+              Our proprietary technology addresses the fundamental flaws in traditional facial recognition systems, delivering unprecedented accuracy across all demographics.
             </p>
           </div>
 
@@ -64,15 +62,16 @@ const Solution = () => {
             <div className="grid md:grid-cols-2 gap-12 items-center">
               <div>
                 <h3 className="text-3xl font-bold mb-6">
-                  Revolutionary Technology Stack
+                  How RekognizeAI Works
                 </h3>
                 <ul className="space-y-4">
                   {[
-                    "Deep learning neural networks trained on 50M+ diverse faces",
-                    "Real-time bias detection and correction algorithms",
-                    "Multi-factor authentication for enhanced security",
-                    "Privacy-first architecture with encrypted data storage",
-                    "Continuous learning system that improves over time",
+                    "Diverse training data spanning all ethnicities, ages, and genders",
+                    "Advanced preprocessing to detect and correct lighting biases",
+                    "Multi-layer neural networks optimized for dark skin tones",
+                    "Real-time fairness metrics monitoring during inference",
+                    "Continuous model updates based on fairness audits",
+                    "End-to-end encryption and privacy-preserving architecture",
                   ].map((item, index) => (
                     <li key={index} className="flex items-start space-x-3">
                       <CheckCircle2 className="w-6 h-6 text-secondary flex-shrink-0 mt-0.5" />
@@ -90,7 +89,7 @@ const Solution = () => {
                       99.9%
                     </div>
                     <div className="text-lg text-muted-foreground">
-                      Accuracy Across All Demographics
+                      Fairness Verified by Independent Audits
                     </div>
                   </div>
                 </div>

@@ -17,14 +17,13 @@ const Contact = () => {
           {/* Header */}
           <div className="text-center max-w-3xl mx-auto mb-16">
             <div className="inline-block gradient-primary text-white font-semibold px-4 py-2 rounded-full mb-4 text-sm">
-              GET IN TOUCH
+              CONTACT US
             </div>
             <h2 className="text-4xl md:text-5xl font-bold mb-6">
-              Ready to Join the Revolution?
+              Let's Build Fair AI Together
             </h2>
             <p className="text-lg text-muted-foreground">
-              Whether you're interested in investing, partnering, or learning
-              more about our technology, we'd love to hear from you.
+              Have questions about our technology, want to explore partnerships, or interested in investment opportunities? We're here to help.
             </p>
           </div>
 

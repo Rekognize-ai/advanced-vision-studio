@@ -22,8 +22,8 @@ const Footer = () => {
                 </a>
               </li>
               <li>
-                <a href="#mission" className="hover:text-primary-foreground transition-smooth">
-                  Mission
+                <a href="#solution" className="hover:text-primary-foreground transition-smooth">
+                  Solution
                 </a>
               </li>
               <li>
@@ -34,6 +34,16 @@ const Footer = () => {
               <li>
                 <a href="#impact" className="hover:text-primary-foreground transition-smooth">
                   Impact
+                </a>
+              </li>
+              <li>
+                <a href="#team" className="hover:text-primary-foreground transition-smooth">
+                  Team
+                </a>
+              </li>
+              <li>
+                <a href="#research" className="hover:text-primary-foreground transition-smooth">
+                  Research
                 </a>
               </li>
             </ul>

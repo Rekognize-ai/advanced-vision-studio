@@ -24,47 +24,37 @@ const Hero = () => {
 
       <div className="container mx-auto px-4 relative z-10">
         <div className="max-w-5xl mx-auto text-center">
-          {/* Badge */}
-          <div className="inline-flex items-center space-x-2 bg-secondary/10 border border-secondary/20 rounded-full px-6 py-2 mb-8 animate-fade-in">
-            <Sparkles className="w-4 h-4 text-secondary" />
-            <span className="text-sm font-semibold text-secondary">
-              Launching Soon
-            </span>
-          </div>
-
           {/* Main Heading */}
           <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight animate-fade-in-up">
-            Welcome to{" "}
+            Building Fair and Accurate<br />
             <span className="text-secondary font-bold">
-              Rekognize AI
-            </span>
-            ,<br />
-            Eliminating Bias in Facial Recognition
+              Facial Recognition
+            </span>{" "}
+            for Every Face
           </h1>
 
           {/* Subheading */}
           <p className="text-xl md:text-2xl text-muted-foreground mb-12 max-w-3xl mx-auto animate-fade-in-up delay-200">
-            Creating an accurate, inclusive, and equitable future with advanced
-            AI technology designed for people of color.
+            AI technology designed to eliminate bias and improve safety across communities
           </p>
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in-up delay-300">
             <Button
               size="lg"
-              onClick={() => scrollToSection("mission")}
+              onClick={() => scrollToSection("get-involved")}
               className="gradient-primary text-white font-semibold shadow-glow hover:scale-105 transition-smooth text-lg px-8 py-6"
             >
-              Learn More
+              Request a Demo
               <ArrowRight className="ml-2 w-5 h-5" />
             </Button>
             <Button
               size="lg"
               variant="outline"
-              onClick={() => scrollToSection("contact")}
+              onClick={() => scrollToSection("get-involved")}
               className="border-2 border-primary text-primary hover:bg-primary hover:text-primary-foreground font-semibold text-lg px-8 py-6 transition-smooth"
             >
-              Invest in Rekognize
+              Partner with Us
             </Button>
           </div>
 
