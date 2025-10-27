@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate, useLocation } from "react-router-dom";
-import logo from "@/assets/logo.svg";
+import logo from "@/assets/logo-full.jpg";
 
 const Navigation = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -62,7 +62,7 @@ const Navigation = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-20">
           <div className="flex items-center space-x-2">
-            <img src={logo} alt="RekognizeAI - Fair Facial Recognition Technology" className="h-6 w-auto" />
+            <img src={logo} alt="RekognizeAI - Fair Facial Recognition Technology" className="h-8 w-auto" />
           </div>
 
           {/* Desktop Navigation */}
