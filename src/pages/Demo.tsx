@@ -1,21 +1,48 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
-import { Upload, Camera, RotateCcw, Lightbulb, CheckCircle2, XCircle } from "lucide-react";
+import { Upload, Camera, RotateCcw, Lightbulb, CheckCircle2, XCircle, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { loadModels, analyzeFace, compareFaces, getFacialFeatures, estimateEthnicity, type FaceAnalysis } from "@/lib/faceApi";
 
 const Demo = () => {
   const [referenceImage, setReferenceImage] = useState<string | null>(null);
   const [comparisonImage, setComparisonImage] = useState<string | null>(null);
   const [isComparing, setIsComparing] = useState(false);
-  const [result, setResult] = useState<{ match: boolean; confidence: number } | null>(null);
+  const [modelsLoading, setModelsLoading] = useState(true);
+  const [result, setResult] = useState<{ 
+    match: boolean; 
+    confidence: number;
+    referenceAnalysis: FaceAnalysis | null;
+    comparisonAnalysis: FaceAnalysis | null;
+  } | null>(null);
   const [showCamera, setShowCamera] = useState<"reference" | "comparison" | null>(null);
   
   const referenceInputRef = useRef<HTMLInputElement>(null);
   const comparisonInputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const referenceImgRef = useRef<HTMLImageElement>(null);
+  const comparisonImgRef = useRef<HTMLImageElement>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    loadModels()
+      .then(() => {
+        setModelsLoading(false);
+        toast({
+          title: "AI Models Loaded",
+          description: "Face detection and analysis ready!",
+        });
+      })
+      .catch(() => {
+        toast({
+          title: "Error Loading Models",
+          description: "Please refresh the page to try again.",
+          variant: "destructive",
+        });
+      });
+  }, []);
 
   const handleImageUpload = (
     event: React.ChangeEvent<HTMLInputElement>,
@@ -84,7 +111,7 @@ const Demo = () => {
     setShowCamera(null);
   };
 
-  const compareFaces = async () => {
+  const performComparison = async () => {
     if (!referenceImage || !comparisonImage) {
       toast({
         title: "Missing Images",
@@ -94,18 +121,58 @@ const Demo = () => {
       return;
     }
 
+    if (!referenceImgRef.current || !comparisonImgRef.current) {
+      toast({
+        title: "Error",
+        description: "Images not properly loaded. Please try again.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsComparing(true);
     setResult(null);
 
-    // Simulate AI processing
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    try {
+      // Analyze both faces
+      const refAnalysis = await analyzeFace(referenceImgRef.current);
+      const compAnalysis = await analyzeFace(comparisonImgRef.current);
 
-    // Demo: Random result for demonstration
-    const match = Math.random() > 0.5;
-    const confidence = match ? 85 + Math.random() * 15 : 20 + Math.random() * 40;
+      if (!refAnalysis || !compAnalysis) {
+        toast({
+          title: "No Face Detected",
+          description: "Could not detect a face in one or both images. Please try different images.",
+          variant: "destructive",
+        });
+        setIsComparing(false);
+        return;
+      }
 
-    setResult({ match, confidence: Math.round(confidence) });
-    setIsComparing(false);
+      // Compare face descriptors
+      const similarity = compareFaces(refAnalysis.descriptor, compAnalysis.descriptor);
+      const match = similarity >= 60; // Threshold for match
+
+      setResult({ 
+        match, 
+        confidence: similarity,
+        referenceAnalysis: refAnalysis,
+        comparisonAnalysis: compAnalysis,
+      });
+
+      toast({
+        title: "Analysis Complete",
+        description: match ? "Match found!" : "No match detected.",
+      });
+    } catch (error) {
+      console.error('Face comparison error:', error);
+      toast({
+        title: "Analysis Error",
+        description: "An error occurred during face analysis. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsComparing(false);
+    }
   };
 
   const reset = () => {
@@ -189,7 +256,13 @@ const Demo = () => {
             
             <div className="aspect-square bg-muted/30 rounded-xl border-2 border-dashed border-border mb-4 overflow-hidden flex items-center justify-center">
               {referenceImage ? (
-                <img src={referenceImage} alt="Reference" className="w-full h-full object-cover" />
+                <img 
+                  ref={referenceImgRef}
+                  src={referenceImage} 
+                  alt="Reference" 
+                  className="w-full h-full object-cover"
+                  crossOrigin="anonymous"
+                />
               ) : (
                 <div className="text-center p-8">
                   <Upload className="w-12 h-12 text-muted-foreground mx-auto mb-2" />
@@ -237,7 +310,13 @@ const Demo = () => {
             
             <div className="aspect-square bg-muted/30 rounded-xl border-2 border-dashed border-border mb-4 overflow-hidden flex items-center justify-center">
               {comparisonImage ? (
-                <img src={comparisonImage} alt="Comparison" className="w-full h-full object-cover" />
+                <img 
+                  ref={comparisonImgRef}
+                  src={comparisonImage} 
+                  alt="Comparison" 
+                  className="w-full h-full object-cover"
+                  crossOrigin="anonymous"
+                />
               ) : (
                 <div className="text-center p-8">
                   <Upload className="w-12 h-12 text-muted-foreground mx-auto mb-2" />
@@ -277,12 +356,24 @@ const Demo = () => {
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
           <Button
-            onClick={compareFaces}
-            disabled={isComparing || !referenceImage || !comparisonImage}
+            onClick={performComparison}
+            disabled={isComparing || modelsLoading || !referenceImage || !comparisonImage}
             className="gradient-primary text-white font-semibold shadow-glow hover:scale-105 transition-smooth"
             size="lg"
           >
-            {isComparing ? "Analyzing..." : "Compare Faces"}
+            {modelsLoading ? (
+              <>
+                <Loader2 className="mr-2 w-5 h-5 animate-spin" />
+                Loading AI Models...
+              </>
+            ) : isComparing ? (
+              <>
+                <Loader2 className="mr-2 w-5 h-5 animate-spin" />
+                Analyzing Faces...
+              </>
+            ) : (
+              "Compare Faces with AI"
+            )}
           </Button>
           <Button
             onClick={reset}
@@ -297,7 +388,8 @@ const Demo = () => {
 
         {/* Results */}
         {result && (
-          <div className="max-w-2xl mx-auto animate-fade-in">
+          <div className="max-w-6xl mx-auto animate-fade-in space-y-6">
+            {/* Match Result Card */}
             <div className={`bg-card rounded-2xl p-8 shadow-elegant border-2 ${
               result.match ? "border-green-500/50" : "border-red-500/50"
             }`}>
@@ -320,13 +412,194 @@ const Demo = () => {
                 </p>
                 
                 <div className="bg-background rounded-xl p-6 inline-block">
-                  <div className="text-sm text-muted-foreground mb-2">Confidence Score</div>
+                  <div className="text-sm text-muted-foreground mb-2">Similarity Score</div>
                   <div className="text-5xl font-bold gradient-primary bg-clip-text text-transparent">
                     {result.confidence}%
                   </div>
                 </div>
               </div>
             </div>
+
+            {/* Detailed Analysis */}
+            {result.referenceAnalysis && result.comparisonAnalysis && (
+              <div className="grid md:grid-cols-2 gap-6">
+                {/* Reference Face Analysis */}
+                <div className="bg-card rounded-2xl p-6 shadow-elegant border border-border">
+                  <h4 className="text-xl font-bold mb-4 text-primary">Reference Face Analysis</h4>
+                  
+                  {/* Demographics */}
+                  <div className="space-y-3 mb-6">
+                    <div className="flex justify-between items-center p-3 bg-background rounded-lg">
+                      <span className="text-muted-foreground">Estimated Age</span>
+                      <span className="font-semibold">{Math.round(result.referenceAnalysis.age)} years</span>
+                    </div>
+                    <div className="flex justify-between items-center p-3 bg-background rounded-lg">
+                      <span className="text-muted-foreground">Gender</span>
+                      <span className="font-semibold capitalize">
+                        {result.referenceAnalysis.gender} ({Math.round(result.referenceAnalysis.genderProbability * 100)}%)
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Facial Features */}
+                  <div className="mb-6">
+                    <h5 className="font-semibold mb-3">Facial Measurements</h5>
+                    <div className="space-y-2 text-sm">
+                      {(() => {
+                        const features = getFacialFeatures(result.referenceAnalysis.landmarks);
+                        return (
+                          <>
+                            <div className="flex justify-between p-2 bg-background rounded">
+                              <span className="text-muted-foreground">Face Ratio</span>
+                              <span className="font-mono">{features.faceRatio}</span>
+                            </div>
+                            <div className="flex justify-between p-2 bg-background rounded">
+                              <span className="text-muted-foreground">Eye Distance</span>
+                              <span className="font-mono">{features.eyeDistance}px</span>
+                            </div>
+                            <div className="flex justify-between p-2 bg-background rounded">
+                              <span className="text-muted-foreground">Landmarks Detected</span>
+                              <span className="font-mono">{features.totalLandmarks} points</span>
+                            </div>
+                          </>
+                        );
+                      })()}
+                    </div>
+                  </div>
+
+                  {/* Ethnicity Analysis */}
+                  <div className="mb-6">
+                    <h5 className="font-semibold mb-3">Facial Structure Analysis</h5>
+                    {(() => {
+                      const ethnicity = estimateEthnicity(result.referenceAnalysis);
+                      return (
+                        <div className="space-y-2">
+                          <div className="p-3 bg-background rounded-lg">
+                            <div className="text-sm text-muted-foreground mb-1">Analysis Result</div>
+                            <div className="font-semibold">{ethnicity.primary}</div>
+                            <div className="text-xs text-muted-foreground mt-1">
+                              Confidence: {Math.round(ethnicity.confidence)}%
+                            </div>
+                          </div>
+                          <div className="text-xs text-muted-foreground space-y-1">
+                            {ethnicity.features.map((feature, idx) => (
+                              <div key={idx} className="flex items-center space-x-2">
+                                <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
+                                <span>{feature}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </div>
+
+                  {/* Expressions */}
+                  <div>
+                    <h5 className="font-semibold mb-3">Detected Expressions</h5>
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      {Object.entries(result.referenceAnalysis.expressions)
+                        .sort((a, b) => b[1] - a[1])
+                        .slice(0, 4)
+                        .map(([expr, val]) => (
+                          <div key={expr} className="p-2 bg-background rounded">
+                            <div className="capitalize text-muted-foreground">{expr}</div>
+                            <div className="font-semibold">{Math.round(val * 100)}%</div>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Comparison Face Analysis */}
+                <div className="bg-card rounded-2xl p-6 shadow-elegant border border-border">
+                  <h4 className="text-xl font-bold mb-4 text-primary">Comparison Face Analysis</h4>
+                  
+                  {/* Demographics */}
+                  <div className="space-y-3 mb-6">
+                    <div className="flex justify-between items-center p-3 bg-background rounded-lg">
+                      <span className="text-muted-foreground">Estimated Age</span>
+                      <span className="font-semibold">{Math.round(result.comparisonAnalysis.age)} years</span>
+                    </div>
+                    <div className="flex justify-between items-center p-3 bg-background rounded-lg">
+                      <span className="text-muted-foreground">Gender</span>
+                      <span className="font-semibold capitalize">
+                        {result.comparisonAnalysis.gender} ({Math.round(result.comparisonAnalysis.genderProbability * 100)}%)
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Facial Features */}
+                  <div className="mb-6">
+                    <h5 className="font-semibold mb-3">Facial Measurements</h5>
+                    <div className="space-y-2 text-sm">
+                      {(() => {
+                        const features = getFacialFeatures(result.comparisonAnalysis.landmarks);
+                        return (
+                          <>
+                            <div className="flex justify-between p-2 bg-background rounded">
+                              <span className="text-muted-foreground">Face Ratio</span>
+                              <span className="font-mono">{features.faceRatio}</span>
+                            </div>
+                            <div className="flex justify-between p-2 bg-background rounded">
+                              <span className="text-muted-foreground">Eye Distance</span>
+                              <span className="font-mono">{features.eyeDistance}px</span>
+                            </div>
+                            <div className="flex justify-between p-2 bg-background rounded">
+                              <span className="text-muted-foreground">Landmarks Detected</span>
+                              <span className="font-mono">{features.totalLandmarks} points</span>
+                            </div>
+                          </>
+                        );
+                      })()}
+                    </div>
+                  </div>
+
+                  {/* Ethnicity Analysis */}
+                  <div className="mb-6">
+                    <h5 className="font-semibold mb-3">Facial Structure Analysis</h5>
+                    {(() => {
+                      const ethnicity = estimateEthnicity(result.comparisonAnalysis);
+                      return (
+                        <div className="space-y-2">
+                          <div className="p-3 bg-background rounded-lg">
+                            <div className="text-sm text-muted-foreground mb-1">Analysis Result</div>
+                            <div className="font-semibold">{ethnicity.primary}</div>
+                            <div className="text-xs text-muted-foreground mt-1">
+                              Confidence: {Math.round(ethnicity.confidence)}%
+                            </div>
+                          </div>
+                          <div className="text-xs text-muted-foreground space-y-1">
+                            {ethnicity.features.map((feature, idx) => (
+                              <div key={idx} className="flex items-center space-x-2">
+                                <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
+                                <span>{feature}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </div>
+
+                  {/* Expressions */}
+                  <div>
+                    <h5 className="font-semibold mb-3">Detected Expressions</h5>
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      {Object.entries(result.comparisonAnalysis.expressions)
+                        .sort((a, b) => b[1] - a[1])
+                        .slice(0, 4)
+                        .map(([expr, val]) => (
+                          <div key={expr} className="p-2 bg-background rounded">
+                            <div className="capitalize text-muted-foreground">{expr}</div>
+                            <div className="font-semibold">{Math.round(val * 100)}%</div>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
