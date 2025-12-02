@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Upload, Camera, RotateCcw, Lightbulb, CheckCircle2, XCircle, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { loadModels, analyzeFace, compareFaces, getFacialFeatures, estimateEthnicity, type FaceAnalysis } from "@/lib/faceApi";
+import * as faceapi from 'face-api.js';
+import rekognizeLogo from "@/assets/rekognize-logo.svg";
 
 const Demo = () => {
   const [referenceImage, setReferenceImage] = useState<string | null>(null);
@@ -16,6 +18,10 @@ const Demo = () => {
     comparisonAnalysis: FaceAnalysis | null;
   } | null>(null);
   const [showCamera, setShowCamera] = useState<"reference" | "comparison" | null>(null);
+  const [referenceFaceBox, setReferenceFaceBox] = useState<any>(null);
+  const [comparisonFaceBox, setComparisonFaceBox] = useState<any>(null);
+  const [detectingReference, setDetectingReference] = useState(false);
+  const [detectingComparison, setDetectingComparison] = useState(false);
   
   const referenceInputRef = useRef<HTMLInputElement>(null);
   const comparisonInputRef = useRef<HTMLInputElement>(null);
@@ -42,6 +48,55 @@ const Demo = () => {
       });
   }, []);
 
+  // Auto-detect faces when images are loaded
+  useEffect(() => {
+    if (referenceImage && referenceImgRef.current && !modelsLoading) {
+      detectFaceInImage(referenceImgRef.current, "reference");
+    }
+  }, [referenceImage, modelsLoading]);
+
+  useEffect(() => {
+    if (comparisonImage && comparisonImgRef.current && !modelsLoading) {
+      detectFaceInImage(comparisonImgRef.current, "comparison");
+    }
+  }, [comparisonImage, modelsLoading]);
+
+  const detectFaceInImage = async (imgElement: HTMLImageElement, type: "reference" | "comparison") => {
+    try {
+      if (type === "reference") setDetectingReference(true);
+      else setDetectingComparison(true);
+
+      const detection = await faceapi
+        .detectSingleFace(imgElement, new faceapi.TinyFaceDetectorOptions())
+        .withFaceLandmarks()
+        .withFaceDescriptor();
+
+      if (detection) {
+        if (type === "reference") {
+          setReferenceFaceBox(detection.detection.box);
+        } else {
+          setComparisonFaceBox(detection.detection.box);
+        }
+        
+        toast({
+          title: "Face Detected!",
+          description: `Face automatically detected in ${type} image.`,
+        });
+      } else {
+        toast({
+          title: "No Face Detected",
+          description: `Could not detect a face in the ${type} image.`,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Auto face detection error:', error);
+    } finally {
+      if (type === "reference") setDetectingReference(false);
+      else setDetectingComparison(false);
+    }
+  };
+
   const handleImageUpload = (
     event: React.ChangeEvent<HTMLInputElement>,
     type: "reference" | "comparison"
@@ -53,8 +108,10 @@ const Demo = () => {
         const imageUrl = e.target?.result as string;
         if (type === "reference") {
           setReferenceImage(imageUrl);
+          setReferenceFaceBox(null);
         } else {
           setComparisonImage(imageUrl);
+          setComparisonFaceBox(null);
         }
       };
       reader.readAsDataURL(file);
@@ -178,6 +235,8 @@ const Demo = () => {
     setComparisonImage(null);
     setResult(null);
     setShowCamera(null);
+    setReferenceFaceBox(null);
+    setComparisonFaceBox(null);
     if (referenceInputRef.current) referenceInputRef.current.value = "";
     if (comparisonInputRef.current) comparisonInputRef.current.value = "";
   };
@@ -185,6 +244,11 @@ const Demo = () => {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 pt-12 pb-24">
+        {/* Logo */}
+        <div className="flex justify-center mb-8">
+          <img src={rekognizeLogo} alt="Rekognize" className="h-16 md:h-20" />
+        </div>
+
         {/* Header */}
         <div className="text-center max-w-4xl mx-auto mb-12">
           <h1 className="text-4xl md:text-5xl font-bold mb-6">
@@ -250,15 +314,37 @@ const Demo = () => {
               Upload or capture the reference face image
             </p>
             
-            <div className="aspect-square bg-muted/30 rounded-xl border-2 border-dashed border-border mb-4 overflow-hidden flex items-center justify-center">
+            <div className="aspect-square bg-muted/30 rounded-xl border-2 border-dashed border-border mb-4 overflow-hidden flex items-center justify-center relative">
               {referenceImage ? (
-                <img 
-                  ref={referenceImgRef}
-                  src={referenceImage} 
-                  alt="Reference" 
-                  className="w-full h-full object-cover"
-                  crossOrigin="anonymous"
-                />
+                <>
+                  <img 
+                    ref={referenceImgRef}
+                    src={referenceImage} 
+                    alt="Reference" 
+                    className="w-full h-full object-cover"
+                    crossOrigin="anonymous"
+                  />
+                  {detectingReference && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                      <Loader2 className="w-8 h-8 text-white animate-spin" />
+                    </div>
+                  )}
+                  {referenceFaceBox && (
+                    <div 
+                      className="absolute border-4 border-green-500 rounded-lg pointer-events-none"
+                      style={{
+                        left: `${(referenceFaceBox.x / referenceImgRef.current!.width) * 100}%`,
+                        top: `${(referenceFaceBox.y / referenceImgRef.current!.height) * 100}%`,
+                        width: `${(referenceFaceBox.width / referenceImgRef.current!.width) * 100}%`,
+                        height: `${(referenceFaceBox.height / referenceImgRef.current!.height) * 100}%`,
+                      }}
+                    >
+                      <div className="absolute -top-6 left-0 bg-green-500 text-white text-xs px-2 py-1 rounded">
+                        Face Detected
+                      </div>
+                    </div>
+                  )}
+                </>
               ) : (
                 <div className="text-center p-8">
                   <Upload className="w-12 h-12 text-muted-foreground mx-auto mb-2" />
@@ -304,15 +390,37 @@ const Demo = () => {
               Upload or capture the image to compare
             </p>
             
-            <div className="aspect-square bg-muted/30 rounded-xl border-2 border-dashed border-border mb-4 overflow-hidden flex items-center justify-center">
+            <div className="aspect-square bg-muted/30 rounded-xl border-2 border-dashed border-border mb-4 overflow-hidden flex items-center justify-center relative">
               {comparisonImage ? (
-                <img 
-                  ref={comparisonImgRef}
-                  src={comparisonImage} 
-                  alt="Comparison" 
-                  className="w-full h-full object-cover"
-                  crossOrigin="anonymous"
-                />
+                <>
+                  <img 
+                    ref={comparisonImgRef}
+                    src={comparisonImage} 
+                    alt="Comparison" 
+                    className="w-full h-full object-cover"
+                    crossOrigin="anonymous"
+                  />
+                  {detectingComparison && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                      <Loader2 className="w-8 h-8 text-white animate-spin" />
+                    </div>
+                  )}
+                  {comparisonFaceBox && (
+                    <div 
+                      className="absolute border-4 border-green-500 rounded-lg pointer-events-none"
+                      style={{
+                        left: `${(comparisonFaceBox.x / comparisonImgRef.current!.width) * 100}%`,
+                        top: `${(comparisonFaceBox.y / comparisonImgRef.current!.height) * 100}%`,
+                        width: `${(comparisonFaceBox.width / comparisonImgRef.current!.width) * 100}%`,
+                        height: `${(comparisonFaceBox.height / comparisonImgRef.current!.height) * 100}%`,
+                      }}
+                    >
+                      <div className="absolute -top-6 left-0 bg-green-500 text-white text-xs px-2 py-1 rounded">
+                        Face Detected
+                      </div>
+                    </div>
+                  )}
+                </>
               ) : (
                 <div className="text-center p-8">
                   <Upload className="w-12 h-12 text-muted-foreground mx-auto mb-2" />
