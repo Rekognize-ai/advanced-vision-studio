@@ -144,12 +144,13 @@ const Demo = () => {
   }, []);
 
   const capturePhoto = useCallback(() => {
-    if (videoRef.current && !autoCapturing) {
+    const video = videoRef.current;
+    if (video) {
       const canvas = document.createElement("canvas");
-      canvas.width = videoRef.current.videoWidth;
-      canvas.height = videoRef.current.videoHeight;
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
       const ctx = canvas.getContext("2d");
-      ctx?.drawImage(videoRef.current, 0, 0);
+      ctx?.drawImage(video, 0, 0);
       const imageUrl = canvas.toDataURL("image/jpeg");
       
       if (showCamera === "reference") {
@@ -168,7 +169,7 @@ const Demo = () => {
       
       stopCamera();
     }
-  }, [showCamera, stopCamera, toast, autoCapturing]);
+  }, [showCamera, stopCamera, toast]);
 
   // Real-time face detection on camera feed
   useEffect(() => {
@@ -248,10 +249,6 @@ const Demo = () => {
                   title: "Excellent Quality!",
                   description: "Capturing now...",
                 });
-                // Capture immediately
-                setTimeout(() => {
-                  capturePhoto();
-                }, 100);
               }
             } else {
               setLiveDetection(null);
