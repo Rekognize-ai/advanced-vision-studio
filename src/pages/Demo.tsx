@@ -144,7 +144,7 @@ const Demo = () => {
   }, []);
 
   const capturePhoto = useCallback(() => {
-    if (videoRef.current) {
+    if (videoRef.current && !autoCapturing) {
       const canvas = document.createElement("canvas");
       canvas.width = videoRef.current.videoWidth;
       canvas.height = videoRef.current.videoHeight;
@@ -168,7 +168,7 @@ const Demo = () => {
       
       stopCamera();
     }
-  }, [showCamera, stopCamera, toast]);
+  }, [showCamera, stopCamera, toast, autoCapturing]);
 
   // Real-time face detection on camera feed
   useEffect(() => {
@@ -241,14 +241,17 @@ const Demo = () => {
                 }
               }
 
-              // Auto-capture logic - only when quality is EXCELLENT (85%+) AND lighting is good
-              if (quality >= 85 && lightingQuality === 'good' && !autoCapturing && countdown === 0) {
+              // Auto-capture logic - immediate capture when EXCELLENT quality (85%+) AND good lighting
+              if (quality >= 85 && lightingQuality === 'good' && !autoCapturing) {
                 setAutoCapturing(true);
-                setCountdown(3);
                 toast({
-                  title: "Hold Still!",
-                  description: "Auto-capturing in 3 seconds...",
+                  title: "Excellent Quality!",
+                  description: "Capturing now...",
                 });
+                // Capture immediately
+                setTimeout(() => {
+                  capturePhoto();
+                }, 100);
               }
             } else {
               setLiveDetection(null);
@@ -435,10 +438,10 @@ const Demo = () => {
                       {liveDetection ? `Face Detected (${Math.round(detectionQuality)}% quality)` : 'Looking for face...'}
                     </span>
                   </div>
-                  {autoCapturing && countdown > 0 && (
+                  {autoCapturing && (
                     <div className="flex items-center space-x-3 bg-green-500/20 border-2 border-green-500 rounded-lg px-4 py-2 animate-pulse">
-                      <span className="text-sm font-semibold text-green-500">HOLD STILL</span>
-                      <span className="text-green-500 font-bold text-2xl">{countdown}</span>
+                      <CheckCircle2 className="w-5 h-5 text-green-500" />
+                      <span className="text-sm font-semibold text-green-500">CAPTURING...</span>
                     </div>
                   )}
                 </div>
@@ -502,7 +505,7 @@ const Demo = () => {
                     </div>
                     <div className="text-xs text-gray-300">
                       {detectionQuality >= 85 && lightingQuality === 'good' 
-                        ? '✓ EXCELLENT - Ready!' 
+                        ? '✓ EXCELLENT - Auto-capturing!' 
                         : detectionQuality >= 70 
                         ? 'Good - improve more' 
                         : 'Need better position'}
@@ -510,14 +513,9 @@ const Demo = () => {
                   </div>
                 )}
                 
-                {/* Hold Still Overlay */}
-                {autoCapturing && countdown > 0 && (
-                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                    <div className="text-center">
-                      <div className="text-white text-6xl font-bold mb-2 animate-pulse">{countdown}</div>
-                      <div className="text-white text-2xl font-semibold">HOLD STILL</div>
-                    </div>
-                  </div>
+                {/* Capturing Flash Overlay */}
+                {autoCapturing && (
+                  <div className="absolute inset-0 bg-white animate-pulse pointer-events-none" />
                 )}
               </div>
 
@@ -526,12 +524,12 @@ const Demo = () => {
                 <div className="flex items-start space-x-2">
                   <Lightbulb className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
                   <div className="text-xs text-muted-foreground space-y-1">
-                    <p className="font-semibold">Auto-capture requires EXCELLENT quality (85%+):</p>
+                    <p className="font-semibold">Auto-capture activates instantly at EXCELLENT quality (85%+):</p>
                     <ul className="list-disc list-inside space-y-0.5 ml-2">
                       <li>Face camera directly in good lighting</li>
                       <li>Avoid shadows on your face</li>
-                      <li>Green box = Excellent, Yellow = Good, Red = Poor</li>
-                      <li>When excellent quality is reached, countdown starts automatically</li>
+                      <li>Green box = Excellent (auto-captures), Yellow = Good, Red = Poor</li>
+                      <li>Photo captures immediately when excellent quality is detected</li>
                     </ul>
                   </div>
                 </div>
