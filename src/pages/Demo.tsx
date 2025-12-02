@@ -26,6 +26,7 @@ const Demo = () => {
   const [detectionQuality, setDetectionQuality] = useState<number>(0);
   const [autoCapturing, setAutoCapturing] = useState(false);
   const [countdown, setCountdown] = useState<number>(0);
+  const [lightingQuality, setLightingQuality] = useState<'good' | 'poor' | 'checking'>('checking');
   
   const referenceInputRef = useRef<HTMLInputElement>(null);
   const comparisonInputRef = useRef<HTMLInputElement>(null);
@@ -186,6 +187,32 @@ const Demo = () => {
               const quality = detection.detection.score * 100;
               setDetectionQuality(quality);
 
+              // Analyze lighting quality from video feed
+              const tempCanvas = document.createElement('canvas');
+              tempCanvas.width = video.videoWidth;
+              tempCanvas.height = video.videoHeight;
+              const tempCtx = tempCanvas.getContext('2d');
+              if (tempCtx) {
+                tempCtx.drawImage(video, 0, 0);
+                const imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+                const data = imageData.data;
+                let brightness = 0;
+                for (let i = 0; i < data.length; i += 4) {
+                  const r = data[i];
+                  const g = data[i + 1];
+                  const b = data[i + 2];
+                  brightness += (r + g + b) / 3;
+                }
+                brightness = brightness / (data.length / 4);
+                
+                // Good lighting is between 80-200 brightness
+                if (brightness < 70 || brightness > 220) {
+                  setLightingQuality('poor');
+                } else {
+                  setLightingQuality('good');
+                }
+              }
+
               // Draw detection on canvas
               if (canvasRef.current) {
                 const displaySize = { width: video.videoWidth, height: video.videoHeight };
@@ -196,15 +223,16 @@ const Demo = () => {
                 if (ctx) {
                   ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
                   
-                  // Draw bounding box
+                  // Draw bounding box - only green if excellent quality
                   const box = resizedDetection.detection.box;
-                  ctx.strokeStyle = quality > 70 ? '#22c55e' : quality > 50 ? '#eab308' : '#ef4444';
+                  const isExcellent = quality >= 85;
+                  ctx.strokeStyle = isExcellent ? '#22c55e' : quality > 70 ? '#eab308' : '#ef4444';
                   ctx.lineWidth = 4;
                   ctx.strokeRect(box.x, box.y, box.width, box.height);
                   
                   // Draw landmarks
                   const landmarks = resizedDetection.landmarks.positions;
-                  ctx.fillStyle = quality > 70 ? '#22c55e' : quality > 50 ? '#eab308' : '#ef4444';
+                  ctx.fillStyle = isExcellent ? '#22c55e' : quality > 70 ? '#eab308' : '#ef4444';
                   landmarks.forEach((point: any) => {
                     ctx.beginPath();
                     ctx.arc(point.x, point.y, 2, 0, 2 * Math.PI);
@@ -213,8 +241,8 @@ const Demo = () => {
                 }
               }
 
-              // Auto-capture logic - immediate trigger when high quality detected
-              if (quality > 75 && !autoCapturing && countdown === 0) {
+              // Auto-capture logic - only when quality is EXCELLENT (85%+) AND lighting is good
+              if (quality >= 85 && lightingQuality === 'good' && !autoCapturing && countdown === 0) {
                 setAutoCapturing(true);
                 setCountdown(3);
                 toast({
@@ -399,17 +427,40 @@ const Demo = () => {
               </h3>
               
               {/* Detection Status */}
-              <div className="mb-4 flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className={`w-3 h-3 rounded-full ${liveDetection ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
-                  <span className="text-sm font-medium">
-                    {liveDetection ? `Face Detected (${Math.round(detectionQuality)}% quality)` : 'Looking for face...'}
-                  </span>
+              <div className="mb-4 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className={`w-3 h-3 rounded-full ${liveDetection ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
+                    <span className="text-sm font-medium">
+                      {liveDetection ? `Face Detected (${Math.round(detectionQuality)}% quality)` : 'Looking for face...'}
+                    </span>
+                  </div>
+                  {autoCapturing && countdown > 0 && (
+                    <div className="flex items-center space-x-3 bg-green-500/20 border-2 border-green-500 rounded-lg px-4 py-2 animate-pulse">
+                      <span className="text-sm font-semibold text-green-500">HOLD STILL</span>
+                      <span className="text-green-500 font-bold text-2xl">{countdown}</span>
+                    </div>
+                  )}
                 </div>
-                {autoCapturing && countdown > 0 && (
-                  <div className="flex items-center space-x-3 bg-green-500/20 border-2 border-green-500 rounded-lg px-4 py-2 animate-pulse">
-                    <span className="text-sm font-semibold text-green-500">HOLD STILL</span>
-                    <span className="text-green-500 font-bold text-2xl">{countdown}</span>
+                
+                {/* Lighting Feedback */}
+                {liveDetection && lightingQuality === 'poor' && (
+                  <div className="flex items-center space-x-2 bg-yellow-500/20 border border-yellow-500 rounded-lg px-3 py-2">
+                    <Lightbulb className="w-4 h-4 text-yellow-500" />
+                    <span className="text-xs text-yellow-500 font-medium">
+                      Poor lighting detected. Move to a brighter area or turn on more lights for better quality.
+                    </span>
+                  </div>
+                )}
+                
+                {/* Quality Feedback */}
+                {liveDetection && detectionQuality < 85 && lightingQuality === 'good' && (
+                  <div className="flex items-center space-x-2 bg-blue-500/20 border border-blue-500 rounded-lg px-3 py-2">
+                    <span className="text-xs text-blue-500 font-medium">
+                      {detectionQuality >= 70 
+                        ? 'Good detection. Move slightly closer or adjust position for excellent quality (85%+)' 
+                        : 'Move closer to camera and face it directly for better detection'}
+                    </span>
                   </div>
                 )}
               </div>
@@ -429,14 +480,19 @@ const Demo = () => {
                 
                   {/* Detection Info Overlay */}
                 {liveDetection && (
-                  <div className="absolute top-4 left-4 bg-black/70 backdrop-blur-sm rounded-lg px-4 py-2 text-white">
-                    <div className="text-xs mb-1">Detection Quality</div>
-                    <div className="flex items-center space-x-2">
+                  <div className="absolute top-4 left-4 bg-black/70 backdrop-blur-sm rounded-lg px-4 py-2 text-white min-w-[200px]">
+                    <div className="text-xs mb-1 flex items-center justify-between">
+                      <span>Detection Quality</span>
+                      {lightingQuality === 'poor' && (
+                        <span className="text-yellow-400 text-xs">⚠ Poor Light</span>
+                      )}
+                    </div>
+                    <div className="flex items-center space-x-2 mb-2">
                       <div className="w-32 h-2 bg-gray-700 rounded-full overflow-hidden">
                         <div 
                           className={`h-full transition-all ${
-                            detectionQuality > 75 ? 'bg-green-500' : 
-                            detectionQuality > 50 ? 'bg-yellow-500' : 
+                            detectionQuality >= 85 ? 'bg-green-500' : 
+                            detectionQuality >= 70 ? 'bg-yellow-500' : 
                             'bg-red-500'
                           }`}
                           style={{ width: `${detectionQuality}%` }}
@@ -444,8 +500,12 @@ const Demo = () => {
                       </div>
                       <span className="text-sm font-bold">{Math.round(detectionQuality)}%</span>
                     </div>
-                    <div className="text-xs mt-1 text-gray-300">
-                      {detectionQuality > 75 ? '✓ Ready to capture' : detectionQuality > 50 ? 'Keep steady...' : 'Move closer'}
+                    <div className="text-xs text-gray-300">
+                      {detectionQuality >= 85 && lightingQuality === 'good' 
+                        ? '✓ EXCELLENT - Ready!' 
+                        : detectionQuality >= 70 
+                        ? 'Good - improve more' 
+                        : 'Need better position'}
                     </div>
                   </div>
                 )}
@@ -465,9 +525,15 @@ const Demo = () => {
               <div className="mb-4 p-3 bg-primary/10 border border-primary/20 rounded-lg">
                 <div className="flex items-start space-x-2">
                   <Lightbulb className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                  <p className="text-xs text-muted-foreground">
-                    Position your face in the frame. When detection quality reaches 75%, you'll see "HOLD STILL" and a 3-second countdown before automatic capture.
-                  </p>
+                  <div className="text-xs text-muted-foreground space-y-1">
+                    <p className="font-semibold">Auto-capture requires EXCELLENT quality (85%+):</p>
+                    <ul className="list-disc list-inside space-y-0.5 ml-2">
+                      <li>Face camera directly in good lighting</li>
+                      <li>Avoid shadows on your face</li>
+                      <li>Green box = Excellent, Yellow = Good, Red = Poor</li>
+                      <li>When excellent quality is reached, countdown starts automatically</li>
+                    </ul>
+                  </div>
                 </div>
               </div>
 
