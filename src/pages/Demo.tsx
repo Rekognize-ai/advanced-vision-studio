@@ -22,12 +22,19 @@ const Demo = () => {
   const [comparisonFaceBox, setComparisonFaceBox] = useState<any>(null);
   const [detectingReference, setDetectingReference] = useState(false);
   const [detectingComparison, setDetectingComparison] = useState(false);
+  const [liveDetection, setLiveDetection] = useState<any>(null);
+  const [detectionQuality, setDetectionQuality] = useState<number>(0);
+  const [autoCapturing, setAutoCapturing] = useState(false);
+  const [countdown, setCountdown] = useState<number>(0);
   
   const referenceInputRef = useRef<HTMLInputElement>(null);
   const comparisonInputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const referenceImgRef = useRef<HTMLImageElement>(null);
   const comparisonImgRef = useRef<HTMLImageElement>(null);
+  const detectionIntervalRef = useRef<any>(null);
+  const consecutiveDetectionsRef = useRef<number>(0);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -118,12 +125,115 @@ const Demo = () => {
     }
   };
 
+  // Real-time face detection on camera feed
+  useEffect(() => {
+    if (showCamera && videoRef.current && !modelsLoading) {
+      const video = videoRef.current;
+      
+      const runDetection = async () => {
+        if (video.readyState === 4) {
+          try {
+            const detection = await faceapi
+              .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.5 }))
+              .withFaceLandmarks();
+
+            if (detection) {
+              setLiveDetection(detection);
+              const quality = detection.detection.score * 100;
+              setDetectionQuality(quality);
+
+              // Draw detection on canvas
+              if (canvasRef.current) {
+                const displaySize = { width: video.videoWidth, height: video.videoHeight };
+                faceapi.matchDimensions(canvasRef.current, displaySize);
+                const resizedDetection = faceapi.resizeResults(detection, displaySize);
+                
+                const ctx = canvasRef.current.getContext('2d');
+                if (ctx) {
+                  ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+                  
+                  // Draw bounding box
+                  const box = resizedDetection.detection.box;
+                  ctx.strokeStyle = quality > 70 ? '#22c55e' : quality > 50 ? '#eab308' : '#ef4444';
+                  ctx.lineWidth = 4;
+                  ctx.strokeRect(box.x, box.y, box.width, box.height);
+                  
+                  // Draw landmarks
+                  const landmarks = resizedDetection.landmarks.positions;
+                  ctx.fillStyle = quality > 70 ? '#22c55e' : quality > 50 ? '#eab308' : '#ef4444';
+                  landmarks.forEach((point: any) => {
+                    ctx.beginPath();
+                    ctx.arc(point.x, point.y, 2, 0, 2 * Math.PI);
+                    ctx.fill();
+                  });
+                }
+              }
+
+              // Auto-capture logic - high quality face detected consistently
+              if (quality > 75) {
+                consecutiveDetectionsRef.current += 1;
+                if (consecutiveDetectionsRef.current >= 5 && !autoCapturing) {
+                  setAutoCapturing(true);
+                  setCountdown(3);
+                }
+              } else {
+                consecutiveDetectionsRef.current = 0;
+                setAutoCapturing(false);
+                setCountdown(0);
+              }
+            } else {
+              setLiveDetection(null);
+              setDetectionQuality(0);
+              consecutiveDetectionsRef.current = 0;
+              setAutoCapturing(false);
+              setCountdown(0);
+              
+              // Clear canvas
+              if (canvasRef.current) {
+                const ctx = canvasRef.current.getContext('2d');
+                if (ctx) {
+                  ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+                }
+              }
+            }
+          } catch (error) {
+            console.error('Live detection error:', error);
+          }
+        }
+      };
+
+      detectionIntervalRef.current = setInterval(runDetection, 100);
+
+      return () => {
+        if (detectionIntervalRef.current) {
+          clearInterval(detectionIntervalRef.current);
+        }
+      };
+    }
+  }, [showCamera, modelsLoading]);
+
+  // Countdown timer for auto-capture
+  useEffect(() => {
+    if (autoCapturing && countdown > 0) {
+      const timer = setTimeout(() => {
+        setCountdown(countdown - 1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    } else if (autoCapturing && countdown === 0) {
+      capturePhoto();
+      setAutoCapturing(false);
+    }
+  }, [autoCapturing, countdown]);
+
   const startCamera = async (type: "reference" | "comparison") => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: "user" } 
+        video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } } 
       });
       setShowCamera(type);
+      setLiveDetection(null);
+      setDetectionQuality(0);
+      consecutiveDetectionsRef.current = 0;
       
       setTimeout(() => {
         if (videoRef.current) {
@@ -163,7 +273,15 @@ const Demo = () => {
       const stream = videoRef.current.srcObject as MediaStream;
       stream.getTracks().forEach(track => track.stop());
     }
+    if (detectionIntervalRef.current) {
+      clearInterval(detectionIntervalRef.current);
+    }
     setShowCamera(null);
+    setLiveDetection(null);
+    setDetectionQuality(0);
+    setAutoCapturing(false);
+    setCountdown(0);
+    consecutiveDetectionsRef.current = 0;
   };
 
   const performComparison = async () => {
@@ -269,10 +387,28 @@ const Demo = () => {
         {/* Camera Modal */}
         {showCamera && (
           <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
-            <div className="bg-card rounded-2xl p-6 max-w-2xl w-full">
+            <div className="bg-card rounded-2xl p-6 max-w-3xl w-full">
               <h3 className="text-2xl font-bold mb-4">
                 Capture {showCamera === "reference" ? "Reference" : "Comparison"} Image
               </h3>
+              
+              {/* Detection Status */}
+              <div className="mb-4 flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className={`w-3 h-3 rounded-full ${liveDetection ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
+                  <span className="text-sm font-medium">
+                    {liveDetection ? `Face Detected (${Math.round(detectionQuality)}% quality)` : 'Looking for face...'}
+                  </span>
+                </div>
+                {autoCapturing && countdown > 0 && (
+                  <div className="flex items-center space-x-2 bg-green-500/20 border border-green-500 rounded-lg px-3 py-1">
+                    <span className="text-green-500 font-bold text-lg">{countdown}</span>
+                    <span className="text-green-500 text-sm">Auto-capturing...</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Video Feed with Canvas Overlay */}
               <div className="relative aspect-video bg-black rounded-xl overflow-hidden mb-4">
                 <video
                   ref={videoRef}
@@ -280,15 +416,55 @@ const Demo = () => {
                   playsInline
                   className="w-full h-full object-cover"
                 />
+                <canvas
+                  ref={canvasRef}
+                  className="absolute top-0 left-0 w-full h-full pointer-events-none"
+                />
+                
+                {/* Detection Info Overlay */}
+                {liveDetection && (
+                  <div className="absolute top-4 left-4 bg-black/70 backdrop-blur-sm rounded-lg px-4 py-2 text-white">
+                    <div className="text-xs mb-1">Detection Quality</div>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-32 h-2 bg-gray-700 rounded-full overflow-hidden">
+                        <div 
+                          className={`h-full transition-all ${
+                            detectionQuality > 75 ? 'bg-green-500' : 
+                            detectionQuality > 50 ? 'bg-yellow-500' : 
+                            'bg-red-500'
+                          }`}
+                          style={{ width: `${detectionQuality}%` }}
+                        />
+                      </div>
+                      <span className="text-sm font-bold">{Math.round(detectionQuality)}%</span>
+                    </div>
+                    <div className="text-xs mt-1 text-gray-300">
+                      {detectionQuality > 75 ? 'Excellent' : detectionQuality > 50 ? 'Good' : 'Poor'}
+                    </div>
+                  </div>
+                )}
               </div>
+
+              {/* Instructions */}
+              <div className="mb-4 p-3 bg-primary/10 border border-primary/20 rounded-lg">
+                <div className="flex items-start space-x-2">
+                  <Lightbulb className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                  <p className="text-xs text-muted-foreground">
+                    Position your face in the frame. When detection quality reaches 75%, auto-capture will begin in 3 seconds. 
+                    Green box = excellent, Yellow = good, Red = needs improvement.
+                  </p>
+                </div>
+              </div>
+
               <div className="flex gap-4">
                 <Button
                   onClick={capturePhoto}
+                  disabled={!liveDetection}
                   className="gradient-primary text-white font-semibold flex-1"
                   size="lg"
                 >
                   <Camera className="mr-2 w-5 h-5" />
-                  Capture Photo
+                  Capture Now
                 </Button>
                 <Button
                   onClick={stopCamera}
