@@ -214,16 +214,14 @@ const Demo = () => {
               }
 
               // Auto-capture logic - high quality face detected consistently
-              if (quality > 75) {
+              if (quality > 70) {
                 consecutiveDetectionsRef.current += 1;
-                if (consecutiveDetectionsRef.current >= 5 && !autoCapturing) {
+                if (consecutiveDetectionsRef.current >= 3 && !autoCapturing) {
                   setAutoCapturing(true);
                   setCountdown(3);
                 }
               } else {
-                consecutiveDetectionsRef.current = 0;
-                setAutoCapturing(false);
-                setCountdown(0);
+                consecutiveDetectionsRef.current = Math.max(0, consecutiveDetectionsRef.current - 1);
               }
             } else {
               setLiveDetection(null);
@@ -430,7 +428,7 @@ const Demo = () => {
                   className="absolute top-0 left-0 w-full h-full pointer-events-none"
                 />
                 
-                {/* Detection Info Overlay */}
+                  {/* Detection Info Overlay */}
                 {liveDetection && (
                   <div className="absolute top-4 left-4 bg-black/70 backdrop-blur-sm rounded-lg px-4 py-2 text-white">
                     <div className="text-xs mb-1">Detection Quality</div>
@@ -438,7 +436,7 @@ const Demo = () => {
                       <div className="w-32 h-2 bg-gray-700 rounded-full overflow-hidden">
                         <div 
                           className={`h-full transition-all ${
-                            detectionQuality > 75 ? 'bg-green-500' : 
+                            detectionQuality > 70 ? 'bg-green-500' : 
                             detectionQuality > 50 ? 'bg-yellow-500' : 
                             'bg-red-500'
                           }`}
@@ -447,8 +445,13 @@ const Demo = () => {
                       </div>
                       <span className="text-sm font-bold">{Math.round(detectionQuality)}%</span>
                     </div>
-                    <div className="text-xs mt-1 text-gray-300">
-                      {detectionQuality > 75 ? 'Excellent' : detectionQuality > 50 ? 'Good' : 'Poor'}
+                    <div className="text-xs mt-1 text-gray-300 flex items-center justify-between">
+                      <span>{detectionQuality > 70 ? 'Excellent' : detectionQuality > 50 ? 'Good' : 'Poor'}</span>
+                      {consecutiveDetectionsRef.current > 0 && (
+                        <span className="text-green-400 font-semibold ml-2">
+                          {consecutiveDetectionsRef.current}/3
+                        </span>
+                      )}
                     </div>
                   </div>
                 )}
@@ -459,7 +462,7 @@ const Demo = () => {
                 <div className="flex items-start space-x-2">
                   <Lightbulb className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
                   <p className="text-xs text-muted-foreground">
-                    Position your face in the frame. When detection quality reaches 75%, auto-capture will begin in 3 seconds. 
+                    Position your face in the frame. When detection quality reaches 70% for 3 consecutive frames, auto-capture will begin in 3 seconds. 
                     Green box = excellent, Yellow = good, Red = needs improvement.
                   </p>
                 </div>
