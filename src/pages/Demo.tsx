@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Upload, Camera, RotateCcw, Lightbulb, CheckCircle2, XCircle, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -125,6 +125,50 @@ const Demo = () => {
     }
   };
 
+  // Camera control functions
+  const stopCamera = useCallback(() => {
+    if (videoRef.current?.srcObject) {
+      const stream = videoRef.current.srcObject as MediaStream;
+      stream.getTracks().forEach(track => track.stop());
+    }
+    if (detectionIntervalRef.current) {
+      clearInterval(detectionIntervalRef.current);
+    }
+    setShowCamera(null);
+    setLiveDetection(null);
+    setDetectionQuality(0);
+    setAutoCapturing(false);
+    setCountdown(0);
+    consecutiveDetectionsRef.current = 0;
+  }, []);
+
+  const capturePhoto = useCallback(() => {
+    if (videoRef.current) {
+      const canvas = document.createElement("canvas");
+      canvas.width = videoRef.current.videoWidth;
+      canvas.height = videoRef.current.videoHeight;
+      const ctx = canvas.getContext("2d");
+      ctx?.drawImage(videoRef.current, 0, 0);
+      const imageUrl = canvas.toDataURL("image/jpeg");
+      
+      if (showCamera === "reference") {
+        setReferenceImage(imageUrl);
+        toast({
+          title: "Photo Captured!",
+          description: "Reference image captured successfully.",
+        });
+      } else {
+        setComparisonImage(imageUrl);
+        toast({
+          title: "Photo Captured!",
+          description: "Comparison image captured successfully.",
+        });
+      }
+      
+      stopCamera();
+    }
+  }, [showCamera, stopCamera, toast]);
+
   // Real-time face detection on camera feed
   useEffect(() => {
     if (showCamera && videoRef.current && !modelsLoading) {
@@ -223,7 +267,7 @@ const Demo = () => {
       capturePhoto();
       setAutoCapturing(false);
     }
-  }, [autoCapturing, countdown]);
+  }, [autoCapturing, countdown, capturePhoto]);
 
   const startCamera = async (type: "reference" | "comparison") => {
     try {
@@ -247,41 +291,6 @@ const Demo = () => {
         variant: "destructive",
       });
     }
-  };
-
-  const capturePhoto = () => {
-    if (videoRef.current) {
-      const canvas = document.createElement("canvas");
-      canvas.width = videoRef.current.videoWidth;
-      canvas.height = videoRef.current.videoHeight;
-      const ctx = canvas.getContext("2d");
-      ctx?.drawImage(videoRef.current, 0, 0);
-      const imageUrl = canvas.toDataURL("image/jpeg");
-      
-      if (showCamera === "reference") {
-        setReferenceImage(imageUrl);
-      } else {
-        setComparisonImage(imageUrl);
-      }
-      
-      stopCamera();
-    }
-  };
-
-  const stopCamera = () => {
-    if (videoRef.current?.srcObject) {
-      const stream = videoRef.current.srcObject as MediaStream;
-      stream.getTracks().forEach(track => track.stop());
-    }
-    if (detectionIntervalRef.current) {
-      clearInterval(detectionIntervalRef.current);
-    }
-    setShowCamera(null);
-    setLiveDetection(null);
-    setDetectionQuality(0);
-    setAutoCapturing(false);
-    setCountdown(0);
-    consecutiveDetectionsRef.current = 0;
   };
 
   const performComparison = async () => {
