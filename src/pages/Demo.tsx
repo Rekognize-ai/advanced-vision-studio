@@ -1,6 +1,4 @@
 import { useState, useRef, useEffect } from "react";
-import Navigation from "@/components/Navigation";
-import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Upload, Camera, RotateCcw, Lightbulb, CheckCircle2, XCircle, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -186,9 +184,7 @@ const Demo = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navigation />
-      
-      <div className="container mx-auto px-4 pt-32 pb-24">
+      <div className="container mx-auto px-4 pt-12 pb-24">
         {/* Header */}
         <div className="text-center max-w-4xl mx-auto mb-12">
           <h1 className="text-4xl md:text-5xl font-bold mb-6">
@@ -603,8 +599,6 @@ const Demo = () => {
           </div>
         )}
       </div>
-
-      <Footer />
     </div>
   );
 };
