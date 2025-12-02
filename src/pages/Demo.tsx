@@ -532,12 +532,12 @@ const Demo = () => {
                 <div className="flex items-start space-x-2">
                   <Lightbulb className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
                   <div className="text-xs text-muted-foreground space-y-1">
-                    <p className="font-semibold">Auto-capture activates instantly at EXCELLENT quality (85%+):</p>
+                    <p className="font-semibold">Two ways to capture:</p>
                     <ul className="list-disc list-inside space-y-0.5 ml-2">
-                      <li>Face camera directly in good lighting</li>
-                      <li>Avoid shadows on your face</li>
-                      <li>Green box = Excellent (auto-captures), Yellow = Good, Red = Poor</li>
-                      <li>Photo captures immediately when excellent quality is detected</li>
+                      <li><strong>Auto-capture:</strong> Activates instantly at EXCELLENT quality (85%+ with good lighting)</li>
+                      <li><strong>Manual capture:</strong> Click "Capture Now" button anytime</li>
+                      <li>Green box = Excellent, Yellow = Good, Red = Poor</li>
+                      <li>Best results: Face camera directly in good lighting</li>
                     </ul>
                   </div>
                 </div>
@@ -546,12 +546,13 @@ const Demo = () => {
               <div className="flex gap-4">
                 <Button
                   onClick={capturePhoto}
-                  disabled={!liveDetection}
                   className="gradient-primary text-white font-semibold flex-1"
                   size="lg"
                 >
                   <Camera className="mr-2 w-5 h-5" />
-                  Capture Now
+                  {liveDetection && detectionQuality >= 85 && lightingQuality === 'good' 
+                    ? 'Capture Now (Excellent!)' 
+                    : 'Capture Now'}
                 </Button>
                 <Button
                   onClick={stopCamera}
