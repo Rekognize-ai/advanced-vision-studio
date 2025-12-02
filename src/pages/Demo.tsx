@@ -281,6 +281,17 @@ const Demo = () => {
     }
   }, [showCamera, modelsLoading]);
 
+  // Auto-capture when flag is set
+  useEffect(() => {
+    if (autoCapturing) {
+      const timer = setTimeout(() => {
+        capturePhoto();
+        setAutoCapturing(false);
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [autoCapturing, capturePhoto]);
+
   // Countdown timer for auto-capture
   useEffect(() => {
     if (autoCapturing && countdown > 0) {
