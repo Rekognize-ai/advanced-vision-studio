@@ -213,15 +213,14 @@ const Demo = () => {
                 }
               }
 
-              // Auto-capture logic - high quality face detected consistently
-              if (quality > 70) {
-                consecutiveDetectionsRef.current += 1;
-                if (consecutiveDetectionsRef.current >= 3 && !autoCapturing) {
-                  setAutoCapturing(true);
-                  setCountdown(3);
-                }
-              } else {
-                consecutiveDetectionsRef.current = Math.max(0, consecutiveDetectionsRef.current - 1);
+              // Auto-capture logic - immediate trigger when high quality detected
+              if (quality > 75 && !autoCapturing && countdown === 0) {
+                setAutoCapturing(true);
+                setCountdown(3);
+                toast({
+                  title: "Hold Still!",
+                  description: "Auto-capturing in 3 seconds...",
+                });
               }
             } else {
               setLiveDetection(null);
@@ -408,9 +407,9 @@ const Demo = () => {
                   </span>
                 </div>
                 {autoCapturing && countdown > 0 && (
-                  <div className="flex items-center space-x-2 bg-green-500/20 border border-green-500 rounded-lg px-3 py-1">
-                    <span className="text-green-500 font-bold text-lg">{countdown}</span>
-                    <span className="text-green-500 text-sm">Auto-capturing...</span>
+                  <div className="flex items-center space-x-3 bg-green-500/20 border-2 border-green-500 rounded-lg px-4 py-2 animate-pulse">
+                    <span className="text-sm font-semibold text-green-500">HOLD STILL</span>
+                    <span className="text-green-500 font-bold text-2xl">{countdown}</span>
                   </div>
                 )}
               </div>
@@ -436,7 +435,7 @@ const Demo = () => {
                       <div className="w-32 h-2 bg-gray-700 rounded-full overflow-hidden">
                         <div 
                           className={`h-full transition-all ${
-                            detectionQuality > 70 ? 'bg-green-500' : 
+                            detectionQuality > 75 ? 'bg-green-500' : 
                             detectionQuality > 50 ? 'bg-yellow-500' : 
                             'bg-red-500'
                           }`}
@@ -445,13 +444,18 @@ const Demo = () => {
                       </div>
                       <span className="text-sm font-bold">{Math.round(detectionQuality)}%</span>
                     </div>
-                    <div className="text-xs mt-1 text-gray-300 flex items-center justify-between">
-                      <span>{detectionQuality > 70 ? 'Excellent' : detectionQuality > 50 ? 'Good' : 'Poor'}</span>
-                      {consecutiveDetectionsRef.current > 0 && (
-                        <span className="text-green-400 font-semibold ml-2">
-                          {consecutiveDetectionsRef.current}/3
-                        </span>
-                      )}
+                    <div className="text-xs mt-1 text-gray-300">
+                      {detectionQuality > 75 ? '✓ Ready to capture' : detectionQuality > 50 ? 'Keep steady...' : 'Move closer'}
+                    </div>
+                  </div>
+                )}
+                
+                {/* Hold Still Overlay */}
+                {autoCapturing && countdown > 0 && (
+                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                    <div className="text-center">
+                      <div className="text-white text-6xl font-bold mb-2 animate-pulse">{countdown}</div>
+                      <div className="text-white text-2xl font-semibold">HOLD STILL</div>
                     </div>
                   </div>
                 )}
@@ -462,8 +466,7 @@ const Demo = () => {
                 <div className="flex items-start space-x-2">
                   <Lightbulb className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
                   <p className="text-xs text-muted-foreground">
-                    Position your face in the frame. When detection quality reaches 70% for 3 consecutive frames, auto-capture will begin in 3 seconds. 
-                    Green box = excellent, Yellow = good, Red = needs improvement.
+                    Position your face in the frame. When detection quality reaches 75%, you'll see "HOLD STILL" and a 3-second countdown before automatic capture.
                   </p>
                 </div>
               </div>
